@@ -10,7 +10,7 @@ def process_sdg_data(input_excel_file, columns_to_drop):
     df = df.drop(columns_to_drop, axis=1)
     df = df.set_index("GeoAreaName").transpose()
     return df
-    
+
 
 def fit_trendline(year_timestamps, data):
     result = linregress(year_timestamps, data)
@@ -20,8 +20,20 @@ def fit_trendline(year_timestamps, data):
 
 
 def country_trendline(country_name):
-    df = process_sdg_data("data/SG_GEN_PARL.xlsx", 
-                          ["Goal", "Target", "Indicator", "SeriesCode", "SeriesDescription", "GeoAreaCode", "Reporting Type", "Sex", "Units"])
+    df = process_sdg_data(
+        "data/SG_GEN_PARL.xlsx",
+        [
+            "Goal",
+            "Target",
+            "Indicator",
+            "SeriesCode",
+            "SeriesDescription",
+            "GeoAreaCode",
+            "Reporting Type",
+            "Sex",
+            "Units",
+        ],
+    )
     timestamps = [int(i) for i in df.index.tolist()]
     country_data = df[country_name].tolist()
     slope, r_squared = fit_trendline(timestamps, country_data)
@@ -43,10 +55,11 @@ class TrendlineInput(BaseModel):
 
 
 # @app.post("/fit_trendline/")
-@app.post("/fit_trendline/", 
-          summary="Fit a trendline to any data",
-          description="Provide a list of integer timestamps and a list of floats")
+@app.post(
+    "/fit_trendline/",
+    summary="Fit a trendline to any data",
+    description="Provide a list of integer timestamps and a list of floats",
+)
 def calculate_trendline(trendline_input: TrendlineInput):
-    slope, r_squared = fit_trendline(trendline_input.timestamps,
-                                     trendline_input.data)
+    slope, r_squared = fit_trendline(trendline_input.timestamps, trendline_input.data)
     return {"slope": slope, "r_squared": r_squared}
